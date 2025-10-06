@@ -42,7 +42,7 @@ ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 -- ============================================================================
 
 -- Get current user's tenant_id
-CREATE OR REPLACE FUNCTION auth.get_user_tenant_id()
+CREATE OR REPLACE FUNCTION public.get_user_tenant_id()
 RETURNS UUID AS $$
 BEGIN
     RETURN (auth.jwt() -> 'app_metadata' ->> 'tenant_id')::UUID;
@@ -50,7 +50,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Get current user's branch_id
-CREATE OR REPLACE FUNCTION auth.get_user_branch_id()
+CREATE OR REPLACE FUNCTION public.get_user_branch_id()
 RETURNS UUID AS $$
 BEGIN
     RETURN (auth.jwt() -> 'app_metadata' ->> 'branch_id')::UUID;
@@ -58,7 +58,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Get current user's role
-CREATE OR REPLACE FUNCTION auth.get_user_role()
+CREATE OR REPLACE FUNCTION public.get_user_role()
 RETURNS TEXT AS $$
 BEGIN
     RETURN auth.jwt() -> 'app_metadata' ->> 'role';
@@ -66,26 +66,26 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Check if user is super admin
-CREATE OR REPLACE FUNCTION auth.is_super_admin()
+CREATE OR REPLACE FUNCTION public.is_super_admin()
 RETURNS BOOLEAN AS $$
 BEGIN
-    RETURN auth.get_user_role() = 'super_admin';
+    RETURN public.get_user_role() = 'super_admin';
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Check if user is tenant admin
-CREATE OR REPLACE FUNCTION auth.is_tenant_admin()
+CREATE OR REPLACE FUNCTION public.is_tenant_admin()
 RETURNS BOOLEAN AS $$
 BEGIN
-    RETURN auth.get_user_role() IN ('super_admin', 'tenant_admin');
+    RETURN public.get_user_role() IN ('super_admin', 'tenant_admin');
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Check if user is branch admin
-CREATE OR REPLACE FUNCTION auth.is_branch_admin()
+CREATE OR REPLACE FUNCTION public.is_branch_admin()
 RETURNS BOOLEAN AS $$
 BEGIN
-    RETURN auth.get_user_role() IN ('super_admin', 'tenant_admin', 'branch_admin');
+    RETURN public.get_user_role() IN ('super_admin', 'tenant_admin', 'branch_admin');
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -98,24 +98,24 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE POLICY tenant_isolation_policy ON tenants
     FOR ALL
     USING (
-        auth.is_super_admin() 
-        OR id = auth.get_user_tenant_id()
+        public.is_super_admin() 
+        OR id = public.get_user_tenant_id()
     );
 
 -- Branches: Tenant-level isolation
 CREATE POLICY branch_tenant_isolation_policy ON branches
     FOR ALL
     USING (
-        auth.is_super_admin()
-        OR tenant_id = auth.get_user_tenant_id()
+        public.is_super_admin()
+        OR tenant_id = public.get_user_tenant_id()
     );
 
 -- Users: Tenant-level isolation
 CREATE POLICY user_tenant_isolation_policy ON users
     FOR ALL
     USING (
-        auth.is_super_admin()
-        OR tenant_id = auth.get_user_tenant_id()
+        public.is_super_admin()
+        OR tenant_id = public.get_user_tenant_id()
     );
 
 -- ============================================================================
@@ -127,7 +127,7 @@ CREATE POLICY user_tenant_isolation_policy ON users
 CREATE POLICY student_select_policy ON students
     FOR SELECT
     USING (
-        auth.is_branch_admin()
+        public.is_branch_admin()
         OR user_id = auth.uid()
         OR user_id IN (
             SELECT parent_id FROM student_parents 
@@ -137,35 +137,35 @@ CREATE POLICY student_select_policy ON students
 
 CREATE POLICY student_insert_policy ON students
     FOR INSERT
-    WITH CHECK (auth.is_branch_admin());
+    WITH CHECK (public.is_branch_admin());
 
 CREATE POLICY student_update_policy ON students
     FOR UPDATE
-    USING (auth.is_branch_admin());
+    USING (public.is_branch_admin());
 
 CREATE POLICY student_delete_policy ON students
     FOR DELETE
-    USING (auth.is_tenant_admin());
+    USING (public.is_tenant_admin());
 
 -- Staff: Can read own data, admins can manage
 CREATE POLICY staff_select_policy ON staff
     FOR SELECT
     USING (
-        auth.is_branch_admin()
+        public.is_branch_admin()
         OR user_id = auth.uid()
     );
 
 CREATE POLICY staff_insert_policy ON staff
     FOR INSERT
-    WITH CHECK (auth.is_branch_admin());
+    WITH CHECK (public.is_branch_admin());
 
 CREATE POLICY staff_update_policy ON staff
     FOR UPDATE
-    USING (auth.is_branch_admin());
+    USING (public.is_branch_admin());
 
 CREATE POLICY staff_delete_policy ON staff
     FOR DELETE
-    USING (auth.is_tenant_admin());
+    USING (public.is_tenant_admin());
 
 -- ============================================================================
 -- SPEC-024: BRANCH ACCESS POLICIES
@@ -176,27 +176,27 @@ CREATE POLICY staff_delete_policy ON staff
 CREATE POLICY academic_year_branch_policy ON academic_years
     FOR ALL
     USING (
-        auth.is_super_admin()
-        OR (tenant_id = auth.get_user_tenant_id() 
-            AND (auth.is_tenant_admin() OR branch_id = auth.get_user_branch_id()))
+        public.is_super_admin()
+        OR (tenant_id = public.get_user_tenant_id() 
+            AND (public.is_tenant_admin() OR branch_id = public.get_user_branch_id()))
     );
 
 -- Classes: Branch-level access
 CREATE POLICY class_branch_policy ON classes
     FOR ALL
     USING (
-        auth.is_super_admin()
-        OR (tenant_id = auth.get_user_tenant_id() 
-            AND (auth.is_tenant_admin() OR branch_id = auth.get_user_branch_id()))
+        public.is_super_admin()
+        OR (tenant_id = public.get_user_tenant_id() 
+            AND (public.is_tenant_admin() OR branch_id = public.get_user_branch_id()))
     );
 
 -- Subjects: Branch-level access
 CREATE POLICY subject_branch_policy ON subjects
     FOR ALL
     USING (
-        auth.is_super_admin()
-        OR (tenant_id = auth.get_user_tenant_id() 
-            AND (auth.is_tenant_admin() OR branch_id = auth.get_user_branch_id()))
+        public.is_super_admin()
+        OR (tenant_id = public.get_user_tenant_id() 
+            AND (public.is_tenant_admin() OR branch_id = public.get_user_branch_id()))
     );
 
 -- ============================================================================
@@ -208,7 +208,7 @@ CREATE POLICY subject_branch_policy ON subjects
 CREATE POLICY student_attendance_select_policy ON student_attendance
     FOR SELECT
     USING (
-        auth.is_branch_admin()
+        public.is_branch_admin()
         OR student_id IN (
             SELECT id FROM students WHERE user_id = auth.uid()
         )
@@ -225,7 +225,7 @@ CREATE POLICY student_attendance_select_policy ON student_attendance
 CREATE POLICY student_attendance_insert_policy ON student_attendance
     FOR INSERT
     WITH CHECK (
-        auth.is_branch_admin()
+        public.is_branch_admin()
         OR marked_by IN (
             SELECT id FROM staff WHERE user_id = auth.uid() AND is_teaching_staff = true
         )
@@ -235,7 +235,7 @@ CREATE POLICY student_attendance_insert_policy ON student_attendance
 CREATE POLICY student_marks_select_policy ON student_marks
     FOR SELECT
     USING (
-        auth.is_branch_admin()
+        public.is_branch_admin()
         OR student_id IN (
             SELECT id FROM students WHERE user_id = auth.uid()
         )
@@ -252,7 +252,7 @@ CREATE POLICY student_marks_select_policy ON student_marks
 CREATE POLICY student_marks_insert_policy ON student_marks
     FOR INSERT
     WITH CHECK (
-        auth.is_branch_admin()
+        public.is_branch_admin()
         OR entered_by IN (
             SELECT id FROM staff WHERE user_id = auth.uid() AND is_teaching_staff = true
         )
@@ -267,7 +267,7 @@ CREATE POLICY student_marks_insert_policy ON student_marks
 CREATE POLICY staff_attendance_select_policy ON staff_attendance
     FOR SELECT
     USING (
-        auth.is_branch_admin()
+        public.is_branch_admin()
         OR staff_id IN (
             SELECT id FROM staff WHERE user_id = auth.uid()
         )
@@ -279,14 +279,14 @@ CREATE POLICY staff_attendance_insert_policy ON staff_attendance
         staff_id IN (
             SELECT id FROM staff WHERE user_id = auth.uid()
         )
-        OR auth.is_branch_admin()
+        OR public.is_branch_admin()
     );
 
 -- Timetables: Teachers see own schedules, admins manage all
 CREATE POLICY timetable_select_policy ON timetables
     FOR SELECT
     USING (
-        auth.is_branch_admin()
+        public.is_branch_admin()
         OR teacher_id IN (
             SELECT id FROM staff WHERE user_id = auth.uid()
         )
@@ -297,7 +297,7 @@ CREATE POLICY timetable_select_policy ON timetables
 
 CREATE POLICY timetable_manage_policy ON timetables
     FOR ALL
-    USING (auth.is_branch_admin());
+    USING (public.is_branch_admin());
 
 -- ============================================================================
 -- SPEC-027: FINANCIAL DATA POLICIES
@@ -307,18 +307,18 @@ CREATE POLICY timetable_manage_policy ON timetables
 -- Fee categories: Admins only
 CREATE POLICY fee_category_policy ON fee_categories
     FOR ALL
-    USING (auth.is_branch_admin());
+    USING (public.is_branch_admin());
 
 -- Fee structures: Admins only
 CREATE POLICY fee_structure_policy ON fee_structures
     FOR ALL
-    USING (auth.is_branch_admin());
+    USING (public.is_branch_admin());
 
 -- Student fees: Students/parents read-only, admins/accountants manage
 CREATE POLICY student_fees_select_policy ON student_fees
     FOR SELECT
     USING (
-        auth.is_branch_admin()
+        public.is_branch_admin()
         OR student_id IN (
             SELECT id FROM students WHERE user_id = auth.uid()
         )
@@ -332,15 +332,15 @@ CREATE POLICY student_fees_select_policy ON student_fees
 CREATE POLICY student_fees_manage_policy ON student_fees
     FOR ALL
     USING (
-        auth.is_branch_admin()
-        OR auth.get_user_role() = 'staff' -- Accountants have staff role
+        public.is_branch_admin()
+        OR public.get_user_role() = 'staff' -- Accountants have staff role
     );
 
 -- Fee payments: Restricted access
 CREATE POLICY fee_payment_select_policy ON fee_payments
     FOR SELECT
     USING (
-        auth.is_branch_admin()
+        public.is_branch_admin()
         OR student_fee_id IN (
             SELECT id FROM student_fees sf
             JOIN students s ON s.id = sf.student_id
@@ -358,8 +358,8 @@ CREATE POLICY fee_payment_select_policy ON fee_payments
 CREATE POLICY fee_payment_insert_policy ON fee_payments
     FOR INSERT
     WITH CHECK (
-        auth.is_branch_admin()
-        OR auth.get_user_role() = 'staff'
+        public.is_branch_admin()
+        OR public.get_user_role() = 'staff'
     );
 
 -- ============================================================================
@@ -370,7 +370,7 @@ CREATE POLICY fee_payment_insert_policy ON fee_payments
 -- Audit logs: Admins can read, system can write
 CREATE POLICY audit_log_select_policy ON audit_logs
     FOR SELECT
-    USING (auth.is_tenant_admin());
+    USING (public.is_tenant_admin());
 
 CREATE POLICY audit_log_insert_policy ON audit_logs
     FOR INSERT
@@ -394,28 +394,28 @@ CREATE POLICY audit_log_no_delete_policy ON audit_logs
 CREATE POLICY announcement_select_policy ON announcements
     FOR SELECT
     USING (
-        tenant_id = auth.get_user_tenant_id()
-        AND (branch_id IS NULL OR branch_id = auth.get_user_branch_id())
+        tenant_id = public.get_user_tenant_id()
+        AND (branch_id IS NULL OR branch_id = public.get_user_branch_id())
         AND published_at IS NOT NULL
         AND (expires_at IS NULL OR expires_at > NOW())
     );
 
 CREATE POLICY announcement_manage_policy ON announcements
     FOR ALL
-    USING (auth.is_branch_admin());
+    USING (public.is_branch_admin());
 
 -- Messages: Sender and recipient only
 CREATE POLICY message_select_policy ON messages
     FOR SELECT
     USING (
-        tenant_id = auth.get_user_tenant_id()
+        tenant_id = public.get_user_tenant_id()
         AND (sender_id = auth.uid() OR recipient_id = auth.uid())
     );
 
 CREATE POLICY message_insert_policy ON messages
     FOR INSERT
     WITH CHECK (
-        tenant_id = auth.get_user_tenant_id()
+        tenant_id = public.get_user_tenant_id()
         AND sender_id = auth.uid()
     );
 
@@ -428,28 +428,28 @@ CREATE POLICY message_insert_policy ON messages
 CREATE POLICY book_select_policy ON books
     FOR SELECT
     USING (
-        tenant_id = auth.get_user_tenant_id()
-        AND (auth.is_tenant_admin() OR branch_id = auth.get_user_branch_id())
+        tenant_id = public.get_user_tenant_id()
+        AND (public.is_tenant_admin() OR branch_id = public.get_user_branch_id())
     );
 
 CREATE POLICY book_manage_policy ON books
     FOR ALL
-    USING (auth.is_branch_admin());
+    USING (public.is_branch_admin());
 
 -- Book issues: Users see own issues, librarians see all
 CREATE POLICY book_issue_select_policy ON book_issues
     FOR SELECT
     USING (
         user_id = auth.uid()
-        OR auth.is_branch_admin()
-        OR auth.get_user_role() = 'staff' -- Librarians
+        OR public.is_branch_admin()
+        OR public.get_user_role() = 'staff' -- Librarians
     );
 
 CREATE POLICY book_issue_manage_policy ON book_issues
     FOR ALL
     USING (
-        auth.is_branch_admin()
-        OR auth.get_user_role() = 'staff'
+        public.is_branch_admin()
+        OR public.get_user_role() = 'staff'
     );
 
 -- ============================================================================
@@ -461,25 +461,25 @@ CREATE POLICY book_issue_manage_policy ON book_issues
 CREATE POLICY vehicle_policy ON vehicles
     FOR ALL
     USING (
-        auth.is_super_admin()
-        OR (tenant_id = auth.get_user_tenant_id() 
-            AND (auth.is_tenant_admin() OR branch_id = auth.get_user_branch_id()))
+        public.is_super_admin()
+        OR (tenant_id = public.get_user_tenant_id() 
+            AND (public.is_tenant_admin() OR branch_id = public.get_user_branch_id()))
     );
 
 -- Routes: Branch-level access
 CREATE POLICY route_policy ON routes
     FOR ALL
     USING (
-        auth.is_super_admin()
-        OR (tenant_id = auth.get_user_tenant_id() 
-            AND (auth.is_tenant_admin() OR branch_id = auth.get_user_branch_id()))
+        public.is_super_admin()
+        OR (tenant_id = public.get_user_tenant_id() 
+            AND (public.is_tenant_admin() OR branch_id = public.get_user_branch_id()))
     );
 
 -- Student transport: Students/parents read, admins manage
 CREATE POLICY student_transport_select_policy ON student_transport
     FOR SELECT
     USING (
-        auth.is_branch_admin()
+        public.is_branch_admin()
         OR student_id IN (
             SELECT id FROM students WHERE user_id = auth.uid()
         )
@@ -492,7 +492,7 @@ CREATE POLICY student_transport_select_policy ON student_transport
 
 CREATE POLICY student_transport_manage_policy ON student_transport
     FOR ALL
-    USING (auth.is_branch_admin());
+    USING (public.is_branch_admin());
 
 -- ============================================================================
 -- EXAMINATION POLICIES
@@ -503,13 +503,13 @@ CREATE POLICY student_transport_manage_policy ON student_transport
 CREATE POLICY examination_select_policy ON examinations
     FOR SELECT
     USING (
-        tenant_id = auth.get_user_tenant_id()
-        AND (auth.is_tenant_admin() OR branch_id = auth.get_user_branch_id())
+        tenant_id = public.get_user_tenant_id()
+        AND (public.is_tenant_admin() OR branch_id = public.get_user_branch_id())
     );
 
 CREATE POLICY examination_manage_policy ON examinations
     FOR ALL
-    USING (auth.is_branch_admin());
+    USING (public.is_branch_admin());
 
 -- Exam schedules: Teachers and students can read, admins manage
 CREATE POLICY exam_schedule_select_policy ON exam_schedules
@@ -517,13 +517,13 @@ CREATE POLICY exam_schedule_select_policy ON exam_schedules
     USING (
         examination_id IN (
             SELECT id FROM examinations e
-            WHERE e.tenant_id = auth.get_user_tenant_id()
+            WHERE e.tenant_id = public.get_user_tenant_id()
         )
     );
 
 CREATE POLICY exam_schedule_manage_policy ON exam_schedules
     FOR ALL
-    USING (auth.is_branch_admin());
+    USING (public.is_branch_admin());
 
 -- ============================================================================
 -- END OF RLS POLICIES
