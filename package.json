@@ -8,7 +8,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "type-check:watch": "tsc --noEmit --watch",
+    "lint:types": "tsc --noEmit && next lint",
+    "build:types": "tsc --project tsconfig.build.json"
   },
   "keywords": [
     "school",
