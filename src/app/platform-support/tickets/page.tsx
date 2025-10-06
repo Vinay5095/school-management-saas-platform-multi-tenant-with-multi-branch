@@ -216,23 +216,23 @@ async function TicketsTable() {
  */
 export default function TicketsPage() {
   return (
-    <div>
+    <div className="space-y-6">
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
+      <div className="flex items-center justify-between pb-5 border-b border-gray-200">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Support Tickets</h1>
           <p className="text-gray-600 mt-2">
             Manage all customer support tickets
           </p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+        <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm">
           <Plus className="w-4 h-4" />
           New Ticket
         </button>
       </div>
 
       {/* Filters and Search */}
-      <div className="mb-6 flex gap-4">
+      <div className="flex gap-4">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
@@ -248,7 +248,7 @@ export default function TicketsPage() {
       </div>
 
       {/* Quick Filter Tabs */}
-      <div className="mb-6 flex gap-2">
+      <div className="flex gap-2">
         <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium">
           All Tickets
         </button>

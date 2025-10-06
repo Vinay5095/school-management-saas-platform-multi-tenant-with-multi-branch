@@ -256,9 +256,9 @@ async function DashboardContent() {
  */
 export default function SuperAdminDashboardPage() {
   return (
-    <div>
+    <div className="space-y-6">
       {/* Header */}
-      <div className="mb-8">
+      <div className="pb-5 border-b border-gray-200">
         <h1 className="text-3xl font-bold text-gray-900">Platform Dashboard</h1>
         <p className="text-gray-600 mt-2">
           Real-time metrics and key performance indicators for the entire platform
