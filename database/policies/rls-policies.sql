@@ -210,7 +210,7 @@ CREATE POLICY student_attendance_select_policy ON student_attendance
     USING (
         public.is_branch_admin()
         OR student_id IN (
-            SELECT id FROM students WHERE user_id = auth.uid()
+            SELECT s.id FROM students s WHERE s.user_id = auth.uid()
         )
         OR student_id IN (
             SELECT sp.student_id FROM student_parents sp
@@ -218,7 +218,7 @@ CREATE POLICY student_attendance_select_policy ON student_attendance
             WHERE p.user_id = auth.uid()
         )
         OR marked_by IN (
-            SELECT id FROM staff WHERE user_id = auth.uid()
+            SELECT st.id FROM staff st WHERE st.user_id = auth.uid()
         )
     );
 
@@ -227,7 +227,7 @@ CREATE POLICY student_attendance_insert_policy ON student_attendance
     WITH CHECK (
         public.is_branch_admin()
         OR marked_by IN (
-            SELECT id FROM staff WHERE user_id = auth.uid() AND is_teaching_staff = true
+            SELECT st.id FROM staff st WHERE st.user_id = auth.uid() AND st.is_teaching_staff = true
         )
     );
 
@@ -237,7 +237,7 @@ CREATE POLICY student_marks_select_policy ON student_marks
     USING (
         public.is_branch_admin()
         OR student_id IN (
-            SELECT id FROM students WHERE user_id = auth.uid()
+            SELECT s.id FROM students s WHERE s.user_id = auth.uid()
         )
         OR student_id IN (
             SELECT sp.student_id FROM student_parents sp
@@ -245,7 +245,7 @@ CREATE POLICY student_marks_select_policy ON student_marks
             WHERE p.user_id = auth.uid()
         )
         OR entered_by IN (
-            SELECT id FROM staff WHERE user_id = auth.uid()
+            SELECT st.id FROM staff st WHERE st.user_id = auth.uid()
         )
     );
 
@@ -254,7 +254,7 @@ CREATE POLICY student_marks_insert_policy ON student_marks
     WITH CHECK (
         public.is_branch_admin()
         OR entered_by IN (
-            SELECT id FROM staff WHERE user_id = auth.uid() AND is_teaching_staff = true
+            SELECT st.id FROM staff st WHERE st.user_id = auth.uid() AND st.is_teaching_staff = true
         )
     );
 
@@ -269,7 +269,7 @@ CREATE POLICY staff_attendance_select_policy ON staff_attendance
     USING (
         public.is_branch_admin()
         OR staff_id IN (
-            SELECT id FROM staff WHERE user_id = auth.uid()
+            SELECT st.id FROM staff st WHERE st.user_id = auth.uid()
         )
     );
 
@@ -277,7 +277,7 @@ CREATE POLICY staff_attendance_insert_policy ON staff_attendance
     FOR INSERT
     WITH CHECK (
         staff_id IN (
-            SELECT id FROM staff WHERE user_id = auth.uid()
+            SELECT st.id FROM staff st WHERE st.user_id = auth.uid()
         )
         OR public.is_branch_admin()
     );
@@ -288,10 +288,10 @@ CREATE POLICY timetable_select_policy ON timetables
     USING (
         public.is_branch_admin()
         OR teacher_id IN (
-            SELECT id FROM staff WHERE user_id = auth.uid()
+            SELECT st.id FROM staff st WHERE st.user_id = auth.uid()
         )
         OR class_id IN (
-            SELECT class_id FROM students WHERE user_id = auth.uid()
+            SELECT s.class_id FROM students s WHERE s.user_id = auth.uid()
         )
     );
 
@@ -320,7 +320,7 @@ CREATE POLICY student_fees_select_policy ON student_fees
     USING (
         public.is_branch_admin()
         OR student_id IN (
-            SELECT id FROM students WHERE user_id = auth.uid()
+            SELECT s.id FROM students s WHERE s.user_id = auth.uid()
         )
         OR student_id IN (
             SELECT sp.student_id FROM student_parents sp
@@ -342,7 +342,7 @@ CREATE POLICY fee_payment_select_policy ON fee_payments
     USING (
         public.is_branch_admin()
         OR student_fee_id IN (
-            SELECT id FROM student_fees sf
+            SELECT sf.id FROM student_fees sf
             JOIN students s ON s.id = sf.student_id
             WHERE s.user_id = auth.uid()
         )
@@ -481,7 +481,7 @@ CREATE POLICY student_transport_select_policy ON student_transport
     USING (
         public.is_branch_admin()
         OR student_id IN (
-            SELECT id FROM students WHERE user_id = auth.uid()
+            SELECT s.id FROM students s WHERE s.user_id = auth.uid()
         )
         OR student_id IN (
             SELECT sp.student_id FROM student_parents sp
@@ -516,7 +516,7 @@ CREATE POLICY exam_schedule_select_policy ON exam_schedules
     FOR SELECT
     USING (
         examination_id IN (
-            SELECT id FROM examinations e
+            SELECT e.id FROM examinations e
             WHERE e.tenant_id = public.get_user_tenant_id()
         )
     );
