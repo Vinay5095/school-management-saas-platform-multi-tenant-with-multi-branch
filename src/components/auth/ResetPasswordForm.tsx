@@ -10,6 +10,10 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
 import { AUTH_CONFIG, validatePassword } from '@/lib/auth/config'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function ResetPasswordForm() {
   const [password, setPassword] = useState('')
@@ -63,95 +67,82 @@ export default function ResetPasswordForm() {
 
   if (success) {
     return (
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-4">
             <svg className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="mt-6 text-3xl font-bold tracking-tight">Password reset successful!</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Your password has been reset successfully. Redirecting to sign in...
-          </p>
-        </div>
-      </div>
+          <CardTitle className="text-2xl">Password updated!</CardTitle>
+          <CardDescription>
+            Your password has been successfully reset. Redirecting to login...
+          </CardDescription>
+        </CardHeader>
+      </Card>
     )
   }
 
   return (
-    <div className="w-full max-w-md space-y-8">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold tracking-tight">Reset your password</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Enter your new password below.
-        </p>
-      </div>
+    <Card className="w-full max-w-md">
+      <CardHeader className="space-y-1">
+        <CardTitle className="text-2xl font-bold text-center">Reset your password</CardTitle>
+        <CardDescription className="text-center">
+          Enter your new password below
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="rounded-md bg-destructive/10 p-4 border border-destructive/20">
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
+          )}
 
-      <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-        {error && (
-          <div className="rounded-md bg-destructive/10 p-4">
-            <p className="text-sm text-destructive">{error}</p>
-          </div>
-        )}
-
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium">
-              New password
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="password">New password</Label>
+            <Input
               id="password"
-              name="password"
               type="password"
-              autoComplete="new-password"
               required
               value={password}
               onChange={(e) => handlePasswordChange(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
             {passwordErrors.length > 0 && (
-              <div className="mt-2 space-y-1">
-                {passwordErrors.map((err, index) => (
-                  <p key={index} className="text-xs text-destructive">
-                    • {err}
-                  </p>
+              <ul className="text-xs text-destructive space-y-1">
+                {passwordErrors.map((err, i) => (
+                  <li key={i}>• {err}</li>
                 ))}
-              </div>
+              </ul>
             )}
           </div>
 
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium">
-              Confirm new password
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">Confirm password</Label>
+            <Input
               id="confirmPassword"
-              name="confirmPassword"
               type="password"
-              autoComplete="new-password"
               required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
-        </div>
 
-        <button
-          type="submit"
-          disabled={isLoading || passwordErrors.length > 0}
-          className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isLoading ? 'Resetting password...' : 'Reset password'}
-        </button>
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="w-full"
+          >
+            {isLoading ? 'Updating password...' : 'Reset password'}
+          </Button>
 
-        <div className="text-center">
-          <Link href={AUTH_CONFIG.REDIRECT_URLS.LOGIN} className="text-sm font-medium text-primary hover:underline">
-            Back to sign in
-          </Link>
-        </div>
-      </form>
-    </div>
+          <div className="text-center pt-2">
+            <Link href={AUTH_CONFIG.REDIRECT_URLS.LOGIN} className="text-sm font-medium text-primary hover:underline">
+              Back to sign in
+            </Link>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   )
 }

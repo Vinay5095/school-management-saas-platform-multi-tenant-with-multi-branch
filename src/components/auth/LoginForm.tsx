@@ -9,6 +9,10 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
 import { AUTH_CONFIG } from '@/lib/auth/config'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function LoginForm() {
   const [email, setEmail] = useState('')
@@ -33,30 +37,27 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="w-full max-w-md space-y-8">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold tracking-tight">Sign in to your account</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
+    <Card className="w-full max-w-md">
+      <CardHeader className="space-y-1">
+        <CardTitle className="text-2xl font-bold text-center">Sign in to your account</CardTitle>
+        <CardDescription className="text-center">
           Or{' '}
           <Link href={AUTH_CONFIG.REDIRECT_URLS.REGISTER} className="font-medium text-primary hover:underline">
             create a new account
           </Link>
-        </p>
-      </div>
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="rounded-md bg-destructive/10 p-4 border border-destructive/20">
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
+          )}
 
-      <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-        {error && (
-          <div className="rounded-md bg-destructive/10 p-4">
-            <p className="text-sm text-destructive">{error}</p>
-          </div>
-        )}
-
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium">
-              Email address
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="email">Email address</Label>
+            <Input
               id="email"
               name="email"
               type="email"
@@ -64,16 +65,13 @@ export default function LoginForm() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               placeholder="you@example.com"
             />
           </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium">
-              Password
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
               id="password"
               name="password"
               type="password"
@@ -81,40 +79,37 @@ export default function LoginForm() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               placeholder="••••••••"
             />
           </div>
-        </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <input
-              id="remember-me"
-              name="remember-me"
-              type="checkbox"
-              className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
-            />
-            <label htmlFor="remember-me" className="ml-2 block text-sm">
-              Remember me
-            </label>
-          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <input
+                id="remember-me"
+                name="remember-me"
+                type="checkbox"
+                className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
+              />
+              <label htmlFor="remember-me" className="text-sm">
+                Remember me
+              </label>
+            </div>
 
-          <div className="text-sm">
-            <Link href={AUTH_CONFIG.REDIRECT_URLS.FORGOT_PASSWORD} className="font-medium text-primary hover:underline">
+            <Link href={AUTH_CONFIG.REDIRECT_URLS.FORGOT_PASSWORD} className="text-sm font-medium text-primary hover:underline">
               Forgot your password?
             </Link>
           </div>
-        </div>
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isLoading ? 'Signing in...' : 'Sign in'}
-        </button>
-      </form>
-    </div>
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="w-full"
+          >
+            {isLoading ? 'Signing in...' : 'Sign in'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   )
 }
