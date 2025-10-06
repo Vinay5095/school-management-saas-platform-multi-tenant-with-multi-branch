@@ -13,7 +13,6 @@ import {
   MoreVertical,
   Building2,
   Users,
-  Calendar,
   DollarSign
 } from 'lucide-react';
 
